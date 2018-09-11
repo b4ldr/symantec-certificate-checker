@@ -150,6 +150,7 @@ class SymantecChecker
 
     public_key_hashes = chain.map do |cert|
       Digest::SHA256.hexdigest(cert.public_key.to_der)
+      puts "#{host} - #{cert.subject}"
     end
 
     if (SYMANTEC_BLACKLIST & public_key_hashes).length > 0 &&
