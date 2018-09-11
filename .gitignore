@@ -1,2 +1,10 @@
+*.lock
+*.sw?
+vendor/
+.bundle/
 top-1m.csv
 .DS_Store
+*results.json
+ranges.txt
+input.txt
+

@@ -109,13 +109,6 @@ class SymantecChecker
 
   def run
     hosts = [@host]
-
-    unless @host.start_with?('www.')
-      candidate = "www.#{@host}"
-      # Only add the host / include in stats if the www version resolves via DNS
-      hosts << candidate if Resolv.getaddresses(candidate).length > 0
-    end
-
     hosts.map { |host| check_host(host) }
   end
 
@@ -184,27 +177,24 @@ class SymantecChecker
       return [host, :good]
     end
   rescue StandardError => ex
+    puts ex
     return [host, :error]
   end
 end
 
 def main(file)
-  hosts = CSV.open(file) do |csv|
-    csv.map do |index, host|
-      host
-    end
-  end
+  puts "Read #{file}"
+  hosts = File.readlines(file)
   puts "Read #{hosts.length} hosts"
+  OpenSSL::SSL.const_set(:VERIFY_PEER, OpenSSL::SSL::VERIFY_NONE)
 
   start = Time.now.to_i
   results = Parallel.map(hosts, in_processes: 32, progress: 'Scanning hosts') do |host|
-    SymantecChecker.new(host).run
+    SymantecChecker.new(host.strip).run
   end
 
   IO.write("#{file}_results.json", results.to_json)
   puts "Took #{Time.now.to_i - start} seconds"
 end
 
-if __FILE__ == $0
-  main(ARGV[0])
-end
+main(ARGV[0])
